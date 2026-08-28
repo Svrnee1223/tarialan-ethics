@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Тариалан хүүхдийн цэцэрлэг - Ёс зүйн дэд хороо</title>
+  <style>
+    :root{
+      --primary:#1769aa;
+      --primary2:#0d47a1;
+      --soft:#eef6ff;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --white:#fff;
+      --border:#dbe7f3;
+      --success:#2e7d32;
+      --danger:#c62828;
+      --warn:#ef6c00;
+      --shadow:0 10px 30px rgba(24, 75, 125, .12);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Arial,"Noto Sans",sans-serif;
+      background:linear-gradient(180deg,#f5fbff 0%,#eef5fb 100%);
+      color:var(--text);
+      min-height:100vh;
+    }
+    .wrap{max-width:920px;margin:0 auto;padding:22px}
+    .header{
+      background:linear-gradient(135deg,var(--primary2),var(--primary));
+      color:white;
+      border-radius:22px;
+      padding:28px 22px;
+      box-shadow:var(--shadow);
+      text-align:center;
+      margin-bottom:20px;
+    }
+    .header .logo{
+      width:70px;height:70px;border-radius:50%;
+      margin:0 auto 12px;
+      display:grid;place-items:center;
+      background:white;color:var(--primary2);
+      font-weight:800;font-size:28px;
+      border:4px solid rgba(255,255,255,.35);
+    }
+    h1{font-size:28px;margin:0 0 6px}
+    .subtitle{font-size:18px;opacity:.95}
+    .note{margin-top:10px;font-size:14px;opacity:.88}
+    .home-card{
+      background:white;border-radius:20px;padding:22px;
+      box-shadow:var(--shadow);
+    }
+    .intro{text-align:center;margin-bottom:20px}
+    .intro h2{margin:0 0 8px;color:var(--primary2)}
+    .intro p{margin:0;color:var(--muted)}
+    .menu{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:16px;
+    }
+    .menu-btn{
+      border:none;border-radius:18px;padding:28px 14px;
+      cursor:pointer;color:white;font-size:20px;font-weight:800;
+      min-height:155px;box-shadow:0 8px 18px rgba(0,0,0,.12);
+      transition:.2s transform,.2s box-shadow;
+    }
+    .menu-btn:hover{transform:translateY(-3px);box-shadow:0 12px 24px rgba(0,0,0,.16)}
+    .menu-btn .icon{display:block;font-size:38px;margin-bottom:10px}
+    .thanks{background:linear-gradient(135deg,#2e7d32,#43a047)}
+    .complaint{background:linear-gradient(135deg,#b71c1c,#e53935)}
+    .survey{background:linear-gradient(135deg,#ef6c00,#fb8c00)}
+    .section{display:none}
+    .section.active{display:block}
+    .panel{
+      background:white;border-radius:20px;padding:22px;
+      box-shadow:var(--shadow);
+    }
+    .panel-head{
+      display:flex;align-items:center;gap:12px;
+      margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border)
+    }
+    .back{
+      border:none;background:#eef4fb;color:var(--primary2);
+      font-weight:700;padding:10px 14px;border-radius:10px;cursor:pointer
+    }
+    .panel h2{margin:0;font-size:24px}
+    .q{
+      padding:18px 0;border-bottom:1px solid #edf2f7
+    }
+    .q:last-child{border-bottom:none}
+    .q-title{font-weight:700;margin-bottom:10px;line-height:1.4}
+    .options{display:flex;flex-wrap:wrap;gap:10px}
+    label.opt{
+      display:flex;align-items:center;gap:7px;
+      border:1px solid var(--border);background:#fafcff;
+      padding:9px 12px;border-radius:10px;cursor:pointer
+    }
+    input[type="radio"],input[type="checkbox"]{transform:scale(1.15)}
+    textarea,input[type="text"]{
+      width:100%;padding:12px 13px;border:1px solid #cfd8e3;
+      border-radius:11px;font-size:16px;outline:none;background:white;
+    }
+    textarea{min-height:95px;resize:vertical}
+    textarea:focus,input[type="text"]:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(23,105,170,.10)}
+    .submit-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+    .submit{
+      flex:1;border:none;border-radius:12px;padding:13px 18px;
+      background:var(--primary2);color:white;font-size:17px;font-weight:800;cursor:pointer;
+    }
+    .clear{
+      border:none;border-radius:12px;padding:13px 18px;
+      background:#eef2f7;color:#374151;font-size:16px;font-weight:700;cursor:pointer
+    }
+    .msg{
+      display:none;margin-top:16px;padding:13px;border-radius:12px;
+      background:#e8f5e9;color:#1b5e20;font-weight:700;text-align:center
+    }
+    .footer{text-align:center;color:#6b7280;font-size:13px;margin-top:18px}
+
+    /* --- НЭМЭЛТ ХЭСГҮҮД: өмнөх загварт өөрчлөлт оруулаагүй --- */
+    .committee{background:linear-gradient(135deg,#6a1b9a,#8e24aa)}
+    .ethics-law{background:linear-gradient(135deg,#37474f,#546e7a)}
+    .preschool-law{background:linear-gradient(135deg,#00695c,#00897b)}
+    .member-grid{
+      display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px
+    }
+    .member-card{
+      border:1px solid var(--border);border-radius:16px;padding:18px;
+      background:#fbfdff;text-align:center
+    }
+    .member-avatar{
+      width:72px;height:72px;border-radius:50%;margin:0 auto 10px;
+      display:grid;place-items:center;background:#e8f1fb;color:var(--primary2);
+      font-size:28px;font-weight:800
+    }
+    .member-card h3{margin:6px 0 4px;font-size:18px;color:var(--primary2)}
+    .member-role{font-weight:700;color:#4b5563}
+    .law-list{display:grid;gap:14px}
+    .law-card{
+      border:1px solid var(--border);border-radius:16px;padding:17px;background:#fbfdff
+    }
+    .law-card h3{margin:0 0 8px;color:var(--primary2);font-size:18px}
+    .law-card p{margin:5px 0;line-height:1.55;color:#374151}
+    .law-link{
+      display:inline-block;margin-top:8px;padding:9px 12px;border-radius:9px;
+      background:#eaf3ff;color:var(--primary2);font-weight:700;text-decoration:none
+    }
+    .law-link:hover{text-decoration:underline}
+    .info-box{
+      margin:14px 0;padding:14px;border-radius:12px;background:#f4f8fc;
+      border-left:4px solid var(--primary);line-height:1.55
+    }
+    @media(max-width:700px){
+      .member-grid{grid-template-columns:1fr}
+    }
+
+    @media(max-width:700px){
+      .wrap{padding:12px}
+      .header{padding:22px 14px;border-radius:16px}
+      h1{font-size:22px}
+      .subtitle{font-size:16px}
+      .menu{grid-template-columns:1fr}
+      .menu-btn{min-height:105px;padding:20px}
+      .panel,.home-card{padding:16px;border-radius:16px}
+      .panel-head{align-items:flex-start}
+    }
+    @media print{
+      .menu,.back,.submit-row,.home-card,.header,.footer{display:none!important}
+      .section{display:block!important;margin-bottom:30px}
+      .panel{box-shadow:none;border:1px solid #ccc}
+    }
+  
+    .member-photo-wrap{
+      width:110px;height:110px;border-radius:50%;margin:0 auto 12px;
+      overflow:hidden;background:#e8f1fb;border:3px solid #d7e6f7;
+      display:grid;place-items:center;
+    }
+    .member-photo{width:100%;height:100%;object-fit:cover;display:none}
+    .member-initial{font-size:30px;font-weight:800;color:var(--primary2)}
+    .member-edit{
+      margin-top:14px;padding-top:12px;border-top:1px dashed var(--border);
+      text-align:left
+    }
+    .member-edit label{display:block;font-size:13px;font-weight:700;margin:8px 0 5px;color:#4b5563}
+    .member-edit input[type="file"]{width:100%;font-size:13px}
+    .contact-line{margin-top:7px;font-size:14px;word-break:break-word}
+    .contact-line a{color:var(--primary2);text-decoration:none}
+    .save-member{
+      width:100%;margin-top:12px;border:none;border-radius:10px;padding:10px;
+      background:var(--primary2);color:#fff;font-weight:800;cursor:pointer
+    }
+
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header class="header">
+    <div class="logo">ЁЗ</div>
+    <h1>Тариалан хүүхдийн цэцэрлэг</h1>
+    <div class="subtitle">Ёс зүйн дэд хороо</div>
+    <div class="note">Таны санал, гомдол, талархал бидний үйл ажиллагааг сайжруулахад чухал.</div>
+  </header>
+
+  <main id="home" class="home-card">
+    <div class="intro">
+      <h2>Та ямар мэдээлэл өгөх вэ?</h2>
+      <p>Доорх 3 хэсгээс сонгон орж бөглөнө үү.</p>
+    </div>
+    <div class="menu">
+      <button class="menu-btn thanks" onclick="openSection('thanksSection')">
+        <span class="icon">💚</span>Талархал
+      </button>
+      <button class="menu-btn complaint" onclick="openSection('complaintSection')">
+        <span class="icon">📩</span>Гомдол
+      </button>
+      <button class="menu-btn survey" onclick="openSection('surveySection')">
+        <span class="icon">📝</span>Санал асуулга
+      </button>
+      <button class="menu-btn committee" onclick="openSection('committeeSection')">
+        <span class="icon">👥</span>Ёс зүйн дэд хорооны танилцуулга
+      </button>
+      <button class="menu-btn ethics-law" onclick="openSection('ethicsLawSection')">
+        <span class="icon">⚖️</span>Төрийн албан хаагчийн ёс зүйн хууль, тогтоомж
+      </button>
+      <button class="menu-btn preschool-law" onclick="openSection('preschoolLawSection')">
+        <span class="icon">📚</span>СӨББ-ын хууль, дүрэм
+      </button>
+    </div>
+  </main>
+
+  <section id="thanksSection" class="section">
+    <div class="panel">
+      <div class="panel-head">
+        <button class="back" onclick="goHome()">← Цэс</button>
+        <h2>💚 Талархал илэрхийлэх</h2>
+      </div>
+      <form onsubmit="saveForm(event,'Талархал')">
+        <div class="q">
+          <div class="q-title">1. Та хэнд талархал илэрхийлэх вэ?</div>
+          <div class="options">
+            <label class="opt"><input type="radio" name="t1" value="Багш"> Багш</label>
+            <label class="opt"><input type="radio" name="t1" value="Туслах багш"> Туслах багш</label>
+            <label class="opt"><input type="radio" name="t1" value="Удирдлага"> Удирдлага</label>
+            <label class="opt"><input type="radio" name="t1" value="Үйлчилгээний ажилтан"> Үйлчилгээний ажилтан</label>
+          </div>
+        </div>
+        <div class="q">
+          <div class="q-title">2. Талархал хүлээн авах хүний нэрийг бичнэ үү.</div>
+          <input type="text" name="t2" placeholder="Нэр / албан тушаал">
+        </div>
+        <div class="q">
+          <div class="q-title">3. Та юунд нь хамгийн их баярласан бэ?</div>
+          <div class="options">
+            <label class="opt"><input type="checkbox" name="t3" value="Хүүхэдтэй зөв харилцсан"> Хүүхэдтэй зөв харилцсан</label>
+            <label class="opt"><input type="checkbox" name="t3" value="Эелдэг харилцаа"> Эелдэг харилцаа</label>
+            <label class="opt"><input type="checkbox" name="t3" value="Тусалж дэмжсэн"> Тусалж дэмжсэн</label>
+            <label class="opt"><input type="checkbox" name="t3" value="Хариуцлагатай ажилласан"> Хариуцлагатай ажилласан</label>
+          </div>
+        </div>
+        <div class="q">
+          <div class="q-title">4. Тухайн ажилтны харилцаа, хандлагыг үнэлнэ үү.</div>
+          <div class="options">
+            <label class="opt"><input type="radio" name="t4" value="Маш сайн"> Маш сайн</label>
+            <label class="opt"><input type="radio" name="t4" value="Сайн"> Сайн</label>
+            <label class="opt"><input type="radio" name="t4" value="Хэвийн"> Хэвийн</label>
+          </div>
+        </div>
+        <div class="q">
+          <div class="q-title">5. Талархсан үйл явдал, шалтгаанаа дэлгэрэнгүй бичнэ үү.</div>
+          <textarea name="t5" placeholder="Таны талархлын дэлгэрэнгүй..."></textarea>
+        </div>
+        <div class="q">
+          <div class="q-title">6. Сэтгэлийн үг, ерөөлөө бичиж болно.</div>
+          <textarea name="t6" placeholder="Баярласан, талархсан сэтгэлийн үг..."></textarea>
+        </div>
+        <div class="submit-row">
+          <button class="submit" type="submit">Илгээх</button>
+          <button class="clear" type="reset">Цэвэрлэх</button>
+        </div>
+        <div class="msg"></div>
+      </form>
+    </div>
+  </section>
+
+  <section id="complaintSection" class="section">
+    <div class="panel">
+      <div class="panel-head">
+        <button class="back" onclick="goHome()">← Цэс</button>
+        <h2>📩 Гомдол, мэдээлэл</h2>
+      </div>
+      <form onsubmit="saveForm(event,'Гомдол')">
+        <div class="q">
+          <div class="q-title">1. Таны гомдол, мэдээлэл хэнд хамааралтай вэ?</div>
+          <div class="options">
+            <label class="opt"><input type="radio" name="g1" value="Багш"> Багш</label>
+            <label class="opt"><input type="radio" name="g1" value="Туслах багш"> Туслах багш</label>
+            <label class="opt"><input type="radio" name="g1" value="Удирдлага"> Удирдлага</label>
+            <label class="opt"><input type="radio" name="g1" value="Бусад ажилтан"> Бусад ажилтан</label>
+          </div>
+        </div>
+        <div class="q">
+          <div class="q-title">2. Ямар төрлийн асуудал байна вэ?</div>
+          <div class="options">
+            <label class="opt"><input type="checkbox" name="g2" value="Харилцаа хандлага"> Харилцаа хандлага</label>
+            <label class="opt"><input type="checkbox" name="g2" value="Ёс зүйн зөрчил"> Ёс зүйн зөрчил</label>
+            <label class="opt"><input type="checkbox" name="g2" value="Хүүхдийн эрх"> Хүүхдийн эрх</label>
+            <label class="opt"><input type="checkbox" name="g2" value="Үйлчилгээ"> Үйлчилгээ</label>
+            <label class="opt"><input type="checkbox" name="g2" value="Бусад"> Бусад</label>
+          </div>
+        </div>
+        <div class="q">
+          <div class="q-title">3. Асуудал хэзээ гарсан бэ?</div>
+          <input type="text" name="g3" placeholder="Огноо, цаг эсвэл ойролцоогоор">
+        </div>
+        <div class="q">
+          <div class="q-title">4. Асуудал болсон газар, нөхцөлийг бичнэ үү.</div>
+          <textarea name="g4" placeholder="Хаана, ямар нөхцөлд..."></textarea>
+        </div>
+        <div class="q">
+          <div class="q-title">5. Гомдол, мэдээллээ дэлгэрэнгүй бичнэ үү.</div>
+          <textarea name="g5" placeholder="Юу болсон талаар тодорхой бичнэ үү..."></textarea>
+        </div>
+        <div class="q">
+          <div class="q-title">6. Та ямар шийдэл, арга хэмжээ хүсэж байна вэ?</div>
+          <textarea name="g6" placeholder="Таны хүсэж буй шийдэл, санал..."></textarea>
+        </div>
+        <div class="submit-row">
+          <button class="submit" type="submit">Илгээх</button>
+          <button class="clear" type="reset">Цэвэрлэх</button>
+        </div>
+        <div class="msg"></div>
+      </form>
+    </div>
+  </section>
+
+  <section id="surveySection" class="section">
+    <div class="panel">
+      <div class="panel-head">
+        <button class="back" onclick="goHome()">← Цэс</button>
+        <h2>📝 Ёс зүйн санал асуулга</h2>
+      </div>
+      <form onsubmit="saveForm(event,'Санал асуулга')">
+        <div class="q">
+          <div class="q-title">1. Багш, ажилтнууд хүүхэдтэй хүндэтгэлтэй харилцдаг уу?</div>
+          <div class="options">
+            <label class="opt"><input type="radio" name="s1" value="Тийм"> Тийм</label>
+            <label class="opt"><input type="radio" name="s1" value="Заримдаа"> Заримдаа</label>
+            <label class="opt"><input type="radio" name="s1" value="Үгүй"> Үгүй</label>
+          </div>
+        </div>
+        <div class="q">
+          <div class="q-title">2. Эцэг эх, асран хамгаалагчтай зөв боловсон харилцдаг уу?</div>
+          <div class="options">
+            <label class="opt"><input type="radio" name="s2" value="Тийм"> Тийм</label>
+            <label class="opt"><input type="radio" name="s2" value="Заримдаа"> Заримдаа</label>
+            <label class="opt"><input type="radio" name="s2" value="Үгүй"> Үгүй</label>
+          </div>
+        </div>
+        <div class="q">
+          <div class="q-title">3. Хүүхэд бүрд тэгш, ялгаварлалгүй ханддаг уу?</div>
+          <div class="options">
+            <label class="opt"><input type="radio" name="s3" value="Тийм"> Тийм</label>
+            <label class="opt"><input type="radio" name="s3" value="Заримдаа"> Заримдаа</label>
+            <label class="opt"><input type="radio" name="s3" value="Үгүй"> Үгүй</label>
+          </div>
+        </div>
+        <div class="q">
+          <div class="q-title">4. Багш, ажилтны ёс зүй, харилцаа хандлагыг ерөнхийд нь үнэлнэ үү.</div>
+          <div class="options">
+            <label class="opt"><input type="radio" name="s4" value="Маш сайн"> Маш сайн</label>
+            <label class="opt"><input type="radio" name="s4" value="Сайн"> Сайн</label>
+            <label class="opt"><input type="radio" name="s4" value="Дунд"> Дунд</label>
+            <label class="opt"><input type="radio" name="s4" value="Сайжруулах шаардлагатай"> Сайжруулах шаардлагатай</label>
+          </div>
+        </div>
+        <div class="q">
+          <div class="q-title">5. Та юуг сайжруулах шаардлагатай гэж үзэж байна вэ?</div>
+          <div class="options">
+            <label class="opt"><input type="checkbox" name="s5" value="Харилцаа"> Харилцаа</label>
+            <label class="opt"><input type="checkbox" name="s5" value="Мэдээлэл өгөх байдал"> Мэдээлэл өгөх байдал</label>
+            <label class="opt"><input type="checkbox" name="s5" value="Хариуцлага"> Хариуцлага</label>
+            <label class="opt"><input type="checkbox" name="s5" value="Үйлчилгээ"> Үйлчилгээ</label>
+            <label class="opt"><input type="checkbox" name="s5" value="Бусад"> Бусад</label>
+          </div>
+        </div>
+        <div class="q">
+          <div class="q-title">6. Нэмэлт санал, хүсэлтээ бичнэ үү.</div>
+          <textarea name="s6" placeholder="Таны санал, хүсэлт..."></textarea>
+        </div>
+        <div class="submit-row">
+          <button class="submit" type="submit">Илгээх</button>
+          <button class="clear" type="reset">Цэвэрлэх</button>
+        </div>
+        <div class="msg"></div>
+      </form>
+    </div>
+  </section>
+
+
+  <section id="committeeSection" class="section">
+    <div class="panel">
+      <div class="panel-head">
+        <button class="back" onclick="goHome()">← Цэс</button>
+        <h2>👥 Ёс зүйн дэд хорооны танилцуулга</h2>
+      </div>
+
+      <div class="info-box">
+        Ёс зүйн дэд хороо нь байгууллагын багш, ажилтны ёс зүйн хэм хэмжээг сахиулах,
+        ёс зүйн зөрчлөөс урьдчилан сэргийлэх, ирүүлсэн гомдол мэдээллийг холбогдох хууль,
+        журмын хүрээнд хянан үзэх, соён гэгээрүүлэх үйл ажиллагааг дэмжин ажиллана.
+      </div>
+
+      <div class="member-grid">
+        <div class="member-card" data-member="bayasgalan">
+          <div class="member-photo-wrap">
+            <span class="member-initial" id="bayasgalanInitial">ХБ</span>
+            <img class="member-photo" id="bayasgalanPhoto" alt="Х. Баясгалан">
+          </div>
+          <h3>Х. Баясгалан</h3>
+          <div class="member-role">Ёс зүйн дэд хорооны дарга</div>
+          <div class="contact-line">📞 <a id="bayasgalanPhoneLink"><span id="bayasgalanPhoneView">Утас оруулаагүй</span></a></div>
+          <div class="contact-line">✉️ <a id="bayasgalanEmailLink"><span id="bayasgalanEmailView">И-мэйл оруулаагүй</span></a></div>
+
+          <div class="member-edit">
+            <label>Зураг сонгох</label>
+            <input type="file" id="bayasgalanFile" accept="image/*" onchange="previewMemberPhoto('bayasgalan', this)">
+
+            <label>Утас</label>
+            <input type="tel" id="bayasgalanPhone" placeholder="Жишээ: 99112233">
+
+            <label>И-мэйл</label>
+            <input type="email" id="bayasgalanEmail" placeholder="Жишээ: name@example.com">
+
+            <button type="button" class="save-member" onclick="saveMember('bayasgalan')">Хадгалах</button>
+          </div>
+        </div>
+        <div class="member-card" data-member="surenpuntsag">
+          <div class="member-photo-wrap">
+            <span class="member-initial" id="surenpuntsagInitial">ДС</span>
+            <img class="member-photo" id="surenpuntsagPhoto" alt="Д. Сүрэнпунцаг">
+          </div>
+          <h3>Д. Сүрэнпунцаг</h3>
+          <div class="member-role">Нарийн бичиг</div>
+          <div class="contact-line">📞 <a id="surenpuntsagPhoneLink"><span id="surenpuntsagPhoneView">Утас оруулаагүй</span></a></div>
+          <div class="contact-line">✉️ <a id="surenpuntsagEmailLink"><span id="surenpuntsagEmailView">И-мэйл оруулаагүй</span></a></div>
+
+          <div class="member-edit">
+            <label>Зураг сонгох</label>
+            <input type="file" id="surenpuntsagFile" accept="image/*" onchange="previewMemberPhoto('surenpuntsag', this)">
+
+            <label>Утас</label>
+            <input type="tel" id="surenpuntsagPhone" placeholder="Жишээ: 99112233">
+
+            <label>И-мэйл</label>
+            <input type="email" id="surenpuntsagEmail" placeholder="Жишээ: name@example.com">
+
+            <button type="button" class="save-member" onclick="saveMember('surenpuntsag')">Хадгалах</button>
+          </div>
+        </div>
+        <div class="member-card" data-member="jargalmaa">
+          <div class="member-photo-wrap">
+            <span class="member-initial" id="jargalmaaInitial">ШЖ</span>
+            <img class="member-photo" id="jargalmaaPhoto" alt="Ш. Жаргалмаа">
+          </div>
+          <h3>Ш. Жаргалмаа</h3>
+          <div class="member-role">Гишүүн</div>
+          <div class="contact-line">📞 <a id="jargalmaaPhoneLink"><span id="jargalmaaPhoneView">Утас оруулаагүй</span></a></div>
+          <div class="contact-line">✉️ <a id="jargalmaaEmailLink"><span id="jargalmaaEmailView">И-мэйл оруулаагүй</span></a></div>
+
+          <div class="member-edit">
+            <label>Зураг сонгох</label>
+            <input type="file" id="jargalmaaFile" accept="image/*" onchange="previewMemberPhoto('jargalmaa', this)">
+
+            <label>Утас</label>
+            <input type="tel" id="jargalmaaPhone" placeholder="Жишээ: 99112233">
+
+            <label>И-мэйл</label>
+            <input type="email" id="jargalmaaEmail" placeholder="Жишээ: name@example.com">
+
+            <button type="button" class="save-member" onclick="saveMember('jargalmaa')">Хадгалах</button>
+          </div>
+        </div>
+      </div>
+      <div class="info-box">
+        Зураг, утас, и-мэйлийг энэ хэсгээс оруулж <b>Хадгалах</b> товчийг дарна.
+        Мэдээлэл энэ төхөөрөмжийн браузерт хадгалагдана.
+      </div>
+    </div>
+  </section>
+
+  <section id="ethicsLawSection" class="section">
+    <div class="panel">
+      <div class="panel-head">
+        <button class="back" onclick="goHome()">← Цэс</button>
+        <h2>⚖️ Төрийн албан хаагчийн ёс зүйн хууль, тогтоомж</h2>
+      </div>
+
+      <div class="info-box">
+        Доорх мэдээлэл нь танилцахад хялбар товч агуулга бөгөөд хэрэглэхдээ
+        Legalinfo.mn дэх хүчин төгөлдөр эхийг нээж шалгана уу.
+      </div>
+
+      <div class="law-list">
+        <div class="law-card">
+          <h3>Төрийн албан хаагчийн ёс зүйн тухай хууль</h3>
+          <p>Төрийн албан хаагчийн ёс зүйн зарчим, нийтлэг хэм хэмжээ, зөрчлөөс урьдчилан
+          сэргийлэх, гомдол мэдээллийг хянан шийдвэрлэх болон хариуцлагын харилцааг зохицуулна.</p>
+          <p><b>Онцлох:</b> Ёс зүйн дэд хороонд гомдол, мэдээлэл гаргах болон түүнийг
+          хянан шийдвэрлэх зохицуулалттай.</p>
+          <a class="law-link" target="_blank" rel="noopener"
+             href="https://legalinfo.mn/mn/detail?lawId=16759635984401">Албан ёсны эхийг нээх</a>
+        </div>
+
+        <div class="law-card">
+          <h3>Сургалтын байгууллагын багш, ажилтны мэргэжлийн ёс зүйн дүрэм</h3>
+          <p>Сургуулийн өмнөх болон ерөнхий боловсролын байгууллагын багш, ажилтан
+          албан үүргээ гүйцэтгэхдээ мөрдөх мэргэжлийн ёс зүйн нийтлэг хэм хэмжээ,
+          хариуцлагыг тодорхойлдог.</p>
+          <a class="law-link" target="_blank" rel="noopener"
+             href="https://legalinfo.mn/mn/detail?lawId=16532345574681">Албан ёсны эхийг нээх</a>
+        </div>
+
+        <div class="law-card">
+          <h3>Ёс зүйн зөвлөлийн ажиллах үлгэрчилсэн журам</h3>
+          <p>Ёс зүйн дүрмийг мөрдүүлэх, зөрчлөөс урьдчилан сэргийлэх, иргэн болон
+          хуулийн этгээдийн гомдол мэдээллийг хянан шийдвэрлэхтэй холбоотой ажиллагааг
+          зохицуулна.</p>
+          <a class="law-link" target="_blank" rel="noopener"
+             href="https://legalinfo.mn/mn/detail?lawId=16532345602431">Албан ёсны эхийг нээх</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="preschoolLawSection" class="section">
+    <div class="panel">
+      <div class="panel-head">
+        <button class="back" onclick="goHome()">← Цэс</button>
+        <h2>📚 СӨББ-ын хууль, дүрэм</h2>
+      </div>
+
+      <div class="info-box">
+        Сургуулийн өмнөх боловсролын байгууллагын өдөр тутмын үйл ажиллагаатай холбоотой
+        гол хууль, дүрмүүдийг нэг дороос нээж танилцах хэсэг.
+      </div>
+
+      <div class="law-list">
+        <div class="law-card">
+          <h3>Боловсролын ерөнхий хууль</h3>
+          <p>Боловсролын зорилго, зарчим, тогтолцоо, боловсролын харилцаанд оролцогчдын
+          эрх зүйн байдал, нийгмийн баталгаатай холбоотой нийтлэг зохицуулалтыг тогтооно.</p>
+          <a class="law-link" target="_blank" rel="noopener"
+             href="https://legalinfo.mn/mn/detail?lawId=16759958962301&type=10">Албан ёсны эхийг нээх</a>
+        </div>
+
+        <div class="law-card">
+          <h3>Сургуулийн өмнөх болон ерөнхий боловсролын тухай хууль</h3>
+          <p>Суралцагч сургуулийн өмнөх болон ерөнхий боловсрол эзэмшихтэй холбоотой
+          харилцааг зохицуулна.</p>
+          <a class="law-link" target="_blank" rel="noopener"
+             href="https://legalinfo.mn/mn/detail?lawId=16759959012931&type=11">Албан ёсны эхийг нээх</a>
+        </div>
+
+        <div class="law-card">
+          <h3>БШУ-ны сайдын 2022 оны А/545 дугаар тушаал</h3>
+          <p>Багш, ажилтны мэргэжлийн ёс зүйн дүрэм болон сургалтын байгууллагын
+          ёс зүйн зөвлөлийн ажиллах үлгэрчилсэн журмыг баталсан тушаал.</p>
+          <a class="law-link" target="_blank" rel="noopener"
+             href="https://legalinfo.mn/mn/detail?lawId=16532284062991">Албан ёсны эхийг нээх</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer">
+    Тариалан хүүхдийн цэцэрлэг • Ёс зүйн дэд хороо
+    <div style="margin-top:10px">
+      <a href="/qr" target="_blank" style="color:#0d47a1;font-weight:700;text-decoration:none">QR код харах / хэвлэх</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openSection(id){
+    document.getElementById('home').style.display='none';
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  function goHome(){
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    document.getElementById('home').style.display='block';
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  async function saveForm(e, type){
+    e.preventDefault();
+    const form = e.target;
+    const data = {};
+    new FormData(form).forEach((v,k)=>{
+      if(data[k]){
+        if(!Array.isArray(data[k])) data[k]=[data[k]];
+        data[k].push(v);
+      } else data[k]=v;
+    });
+
+    const record = {
+      type:type,
+      date:new Date().toLocaleString('mn-MN'),
+      answers:data
+    };
+
+    const msg = form.querySelector('.msg');
+    msg.style.display='block';
+    msg.style.background='#fff8e1';
+    msg.style.color='#8a5a00';
+    msg.textContent='Илгээж байна...';
+
+    try{
+      const res = await fetch('/api/submit', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(record)
+      });
+      if(!res.ok) throw new Error('submit failed');
+
+      msg.style.background='#e8f5e9';
+      msg.style.color='#1b5e20';
+      msg.textContent='Таны мэдээлэл амжилттай илгээгдлээ. Баярлалаа.';
+      form.reset();
+
+      setTimeout(()=>{
+        msg.style.display='none';
+        goHome();
+      },1800);
+    }catch(err){
+      msg.style.background='#ffebee';
+      msg.style.color='#b71c1c';
+      msg.textContent='Илгээхэд алдаа гарлаа. Интернэт холболтоо шалгаад дахин оролдоно уу.';
+    }
+  }
+
+  const memberKeys = ['bayasgalan','surenpuntsag','jargalmaa'];
+
+  function setMemberView(key, data){
+    const phone = data.phone || '';
+    const email = data.email || '';
+    document.getElementById(key+'Phone').value = phone;
+    document.getElementById(key+'Email').value = email;
+    document.getElementById(key+'PhoneView').textContent = phone || 'Утас оруулаагүй';
+    document.getElementById(key+'EmailView').textContent = email || 'И-мэйл оруулаагүй';
+
+    const pLink = document.getElementById(key+'PhoneLink');
+    const eLink = document.getElementById(key+'EmailLink');
+    pLink.href = phone ? 'tel:'+phone.replace(/\s+/g,'') : '';
+    eLink.href = email ? 'mailto:'+email : '';
+
+    const img = document.getElementById(key+'Photo');
+    const initial = document.getElementById(key+'Initial');
+    if(data.photo){
+      img.src = data.photo;
+      img.style.display = 'block';
+      initial.style.display = 'none';
+    }else{
+      img.style.display = 'none';
+      initial.style.display = 'block';
+    }
+  }
+
+
+  function resizeImage(file, maxSize, quality, callback){
+    const reader = new FileReader();
+    reader.onload = function(ev){
+      const img = new Image();
+      img.onload = function(){
+        let w = img.width, h = img.height;
+        if(w > h && w > maxSize){ h = Math.round(h * maxSize / w); w = maxSize; }
+        else if(h >= w && h > maxSize){ w = Math.round(w * maxSize / h); h = maxSize; }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img,0,0,w,h);
+        callback(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function previewMemberPhoto(key, input){
+    const file = input.files && input.files[0];
+    if(!file) return;
+    if(!file.type.startsWith('image/')){
+      alert('Зургийн файл сонгоно уу.');
+      input.value='';
+      return;
+    }
+    resizeImage(file, 600, 0.82, function(photoData){
+      const img = document.getElementById(key+'Photo');
+      const initial = document.getElementById(key+'Initial');
+      img.src = photoData;
+      img.dataset.pendingPhoto = photoData;
+      img.style.display = 'block';
+      initial.style.display = 'none';
+    });
+  }
+
+  function saveMember(key){
+    const phone = document.getElementById(key+'Phone').value.trim();
+    const emailInput = document.getElementById(key+'Email');
+    const email = emailInput.value.trim();
+    if(email && !emailInput.checkValidity()){
+      alert('И-мэйл хаягаа зөв бичнэ үү.');
+      return;
+    }
+
+    const storageKey = 'ethicsMember_'+key;
+    const old = JSON.parse(localStorage.getItem(storageKey) || '{}');
+    const img = document.getElementById(key+'Photo');
+    const pending = img.dataset.pendingPhoto || '';
+
+    const finish = (photo) => {
+      const data = {phone:phone, email:email, photo:photo || old.photo || ''};
+      try{
+        localStorage.setItem(storageKey, JSON.stringify(data));
+        setMemberView(key, data);
+        img.dataset.pendingPhoto = '';
+        document.getElementById(key+'File').value = '';
+        alert('Гишүүний зураг, утас, и-мэйл амжилттай хадгалагдлаа.');
+      }catch(err){
+        alert('Хадгалах сан дүүрсэн байна. Өөр жижиг зураг сонгоод дахин оролдоно уу.');
+      }
+    };
+
+    if(pending){
+      finish(pending);
+    }else{
+      const file = document.getElementById(key+'File').files[0];
+      if(file){
+        resizeImage(file, 600, 0.82, finish);
+      }else{
+        finish(old.photo || '');
+      }
+    }
+  }
+
+  memberKeys.forEach(key=>{
+    const data = JSON.parse(localStorage.getItem('ethicsMember_'+key) || '{}');
+    setMemberView(key, data);
+  });
+
+</script>
+</body>
+</html>
