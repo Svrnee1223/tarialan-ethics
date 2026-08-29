@@ -23,7 +23,7 @@ function writeResponses(rows){
   fs.writeFileSync(DATA_FILE, JSON.stringify(rows, null, 2), 'utf8');
 }
 
-app.post('/api/submit', (req, res) => app.use(express.static(__dirname));{
+app.post('/api/submit', (req, res) => {
   const body = req.body || {};
   if (!['Талархал','Гомдол','Санал асуулга'].includes(body.type)) {
     return res.status(400).json({ok:false});
