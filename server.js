@@ -10,10 +10,12 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'CHANGE-ME-NOW';
 
 const DATA_DIR = path.join(__dirname, 'data');
 const DATA_FILE = path.join(DATA_DIR, 'responses.json');
+const INDEX_FILE = path.join(__dirname, 'index.html');
 
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
+
 if (!fs.existsSync(DATA_FILE)) {
   fs.writeFileSync(DATA_FILE, '[]', 'utf8');
 }
@@ -23,37 +25,50 @@ app.use(express.urlencoded({ extended: true }));
 
 function readResponses() {
   try {
-    return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8') || '[]');
-  } catch {
+    const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8') || '[]');
+    return Array.isArray(data) ? data : [];
+  } catch (err) {
+    console.error(err);
     return [];
   }
 }
 
-function writeResponses(rows) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(rows, null, 2), 'utf8');
+function writeResponses(data) {
+  fs.writeFileSync(
+    DATA_FILE,
+    JSON.stringify(data, null, 2),
+    'utf8'
+  );
 }
 
 app.post('/api/submit', (req, res) => {
   try {
     const body = req.body || {};
 
-    const row = {
+    const responses = readResponses();
+
+    responses.push({
       id: crypto.randomUUID(),
       type: String(body.type || ''),
       name: String(body.name || ''),
       message: String(body.message || ''),
       answer: body.answer ?? null,
       createdAt: new Date().toISOString()
-    };
+    });
 
-    const rows = readResponses();
-    rows.push(row);
-    writeResponses(rows);
+    writeResponses(responses);
 
-    res.json({ ok: true });
+    return res.json({
+      ok: true,
+      message: 'Амжилттай илгээгдлээ.'
+    });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ ok: false });
+
+    return res.status(500).json({
+      ok: false,
+      message: 'Хадгалах үед алдаа гарлаа.'
+    });
   }
 });
 
@@ -67,7 +82,7 @@ app.get('/api/admin/responses', (req, res) => {
     });
   }
 
-  res.json({
+  return res.json({
     ok: true,
     responses: readResponses()
   });
@@ -76,6 +91,7 @@ app.get('/api/admin/responses', (req, res) => {
 app.get('/qr', async (req, res) => {
   try {
     const url = `${req.protocol}://${req.get('host')}/`;
+
     const qr = await QRCode.toBuffer(url, {
       width: 700,
       margin: 2
@@ -83,12 +99,17 @@ app.get('/qr', async (req, res) => {
 
     res.type('png').send(qr);
   } catch (err) {
-    res.status(500).send('QR алдаа');
+    console.error(err);
+    res.status(500).send('QR кодын алдаа');
   }
 });
 
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.sendFile(INDEX_FILE);
+});
+
+app.get('/index.html', (req, res) => {
+  res.sendFile(INDEX_FILE);
 });
 
 app.use(express.static(__dirname));
