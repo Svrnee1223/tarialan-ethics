@@ -98,4 +98,8 @@ async function loadData(){
 </script></body></html>`);
 });
 
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 app.listen(PORT, () => console.log(`Running on ${PORT}`));
