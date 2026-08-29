@@ -13,9 +13,8 @@ const DATA_FILE = path.join(DATA_DIR, 'responses.json');
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, '[]', 'utf8');
 
-app.use(express.json({ limit: '1mb' }));
-app.use(express.static(path.join(__dirname, 'public')));
-
+app.use(express.json({ limit: '1mb }));
+app.use(express.static(__dirname));
 function readResponses(){
   try { return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); }
   catch { return []; }
@@ -24,7 +23,7 @@ function writeResponses(rows){
   fs.writeFileSync(DATA_FILE, JSON.stringify(rows, null, 2), 'utf8');
 }
 
-app.post('/api/submit', (req, res) => {
+app.post('/api/submit', (req, res) => app.use(express.static(__dirname));{
   const body = req.body || {};
   if (!['Талархал','Гомдол','Санал асуулга'].includes(body.type)) {
     return res.status(400).json({ok:false});
