@@ -7,498 +7,96 @@ const QRCode = require('qrcode');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'CHANGE-ME-NOW';
-
 const DATA_DIR = path.join(__dirname, 'data');
 const DATA_FILE = path.join(DATA_DIR, 'responses.json');
-const INDEX_FILE = path.join(__dirname, 'index.html');
 
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-}
-
-if (!fs.existsSync(DATA_FILE)) {
-  fs.writeFileSync(DATA_FILE, '[]', 'utf8');
-}
+if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, '[]', 'utf8');
 
 app.use(express.json({ limit: '1mb' }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
 
-function readResponses() {
-  try {
-    const data = JSON.parse(
-      fs.readFileSync(DATA_FILE, 'utf8') || '[]'
-    );
-    return Array.isArray(data) ? data : [];
-  } catch (err) {
-    console.error(err);
-    return [];
-  }
+function readResponses(){
+  try { return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); }
+  catch { return []; }
 }
-
-function writeResponses(data) {
-  fs.writeFileSync(
-    DATA_FILE,
-    JSON.stringify(data, null, 2),
-    'utf8'
-  );
+function writeResponses(rows){
+  fs.writeFileSync(DATA_FILE, JSON.stringify(rows, null, 2), 'utf8');
 }
-
-
-// ===============================
-// САНАЛ, ГОМДОЛ ХАДГАЛАХ
-// ===============================
 
 app.post('/api/submit', (req, res) => {
-  try {
-    const body = req.body || {};
-    const responses = readResponses();
-
-    responses.push({
-      id: crypto.randomUUID(),
-      receivedAt: new Date().toISOString(),
-
-      type: String(body.type || ''),
-      date: body.date || '',
-
-      name: String(body.name || ''),
-      message: String(body.message || ''),
-
-      answer: body.answer ?? null,
-
-      // Санал асуулгын бүх хариуг хадгална
-      answers: body.answers || {}
-    });
-
-    writeResponses(responses);
-
-    return res.json({
-      ok: true,
-      message: 'Амжилттай илгээгдлээ.'
-    });
-
-  } catch (err) {
-    console.error(err);
-
-    return res.status(500).json({
-      ok: false,
-      message: 'Хадгалах үед алдаа гарлаа.'
-    });
+  const body = req.body || {};
+  if (!['Талархал','Гомдол','Санал асуулга'].includes(body.type)) {
+    return res.status(400).json({ok:false});
   }
+  const rows = readResponses();
+  rows.push({
+    id: crypto.randomUUID(),
+    receivedAt: new Date().toISOString(),
+    type: body.type,
+    date: body.date || '',
+    answers: body.answers || {}
+  });
+  writeResponses(rows);
+  res.json({ok:true});
 });
 
-
-// ===============================
-// АДМИН МЭДЭЭЛЭЛ АВАХ API
-// ===============================
+function adminAuthorized(req){
+  const supplied = req.get('x-admin-password') || '';
+  return supplied && supplied === ADMIN_PASSWORD;
+}
 
 app.get('/api/admin/responses', (req, res) => {
-  const password =
-    req.get('x-admin-password') || '';
-
-  if (password !== ADMIN_PASSWORD) {
-    return res.status(401).json({
-      ok: false,
-      message: 'Нууц үг буруу байна.'
-    });
-  }
-
-  return res.json({
-    ok: true,
-    responses: readResponses()
-  });
+  if (!adminAuthorized(req)) return res.status(401).json({error:'unauthorized'});
+  res.json(readResponses());
 });
-
-
-// ===============================
-// АДМИН ХУУДАС
-// ===============================
-
-app.get('/admin', (req, res) => {
-
-  res.type('html').send(`
-<!DOCTYPE html>
-<html lang="mn">
-
-<head>
-<meta charset="UTF-8">
-
-<meta
-  name="viewport"
-  content="width=device-width, initial-scale=1.0"
->
-
-<title>Ёс зүйн дэд хороо - Админ</title>
-
-<style>
-
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  background: #f2f6fa;
-}
-
-.header {
-  background: #1769aa;
-  color: white;
-  padding: 25px;
-  text-align: center;
-}
-
-.container {
-  max-width: 950px;
-  margin: 25px auto;
-  background: white;
-  padding: 25px;
-  border-radius: 15px;
-}
-
-.login {
-  text-align: center;
-  margin-bottom: 25px;
-}
-
-input {
-  padding: 12px;
-  font-size: 16px;
-  width: 250px;
-  max-width: 80%;
-  border: 1px solid #bbb;
-  border-radius: 8px;
-}
-
-button {
-  padding: 12px 20px;
-  font-size: 16px;
-  background: #1769aa;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.status {
-  text-align: center;
-  margin: 15px;
-  font-weight: bold;
-}
-
-.item {
-  padding: 18px;
-  margin: 12px 0;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-}
-
-.item h3 {
-  margin-top: 0;
-}
-
-.date {
-  color: #777;
-  font-size: 13px;
-}
-
-.answers {
-  background: #f6f6f6;
-  padding: 10px;
-  border-radius: 8px;
-  margin-top: 10px;
-}
-
-</style>
-</head>
-
-
-<body>
-
-<div class="header">
-
-<h1>Тариалан хүүхдийн цэцэрлэг</h1>
-
-<h2>Ёс зүйн дэд хороо</h2>
-
-<p>Ирсэн санал, гомдол, талархал</p>
-
-</div>
-
-
-<div class="container">
-
-<div class="login">
-
-<h3>Админ нэвтрэх</h3>
-
-<input
-  id="password"
-  type="password"
-  placeholder="Нууц үгээ оруулна уу"
->
-
-<button onclick="loadResponses()">
-Харах
-</button>
-
-</div>
-
-
-<div
-  id="status"
-  class="status">
-</div>
-
-<div id="responses"></div>
-
-</div>
-
-
-<script>
-
-function safe(value) {
-
-  return String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
-
-function showAnswers(answers) {
-
-  if (
-    !answers ||
-    typeof answers !== 'object' ||
-    Object.keys(answers).length === 0
-  ) {
-    return '';
-  }
-
-  let html =
-    '<div class="answers"><b>Хариултууд:</b>';
-
-  Object.entries(answers).forEach(
-    function(entry) {
-
-      html +=
-        '<p><b>' +
-        safe(entry[0]) +
-        ':</b> ' +
-        safe(entry[1]) +
-        '</p>';
-    }
-  );
-
-  html += '</div>';
-
-  return html;
-}
-
-
-async function loadResponses() {
-
-  const password =
-    document.getElementById('password').value;
-
-  const status =
-    document.getElementById('status');
-
-  const container =
-    document.getElementById('responses');
-
-  if (!password) {
-
-    status.textContent =
-      'Нууц үгээ оруулна уу.';
-
-    return;
-  }
-
-
-  status.textContent =
-    'Мэдээлэл уншиж байна...';
-
-  container.innerHTML = '';
-
-
-  try {
-
-    const response =
-      await fetch(
-        '/api/admin/responses',
-        {
-          headers: {
-            'x-admin-password': password
-          }
-        }
-      );
-
-
-    const data =
-      await response.json();
-
-
-    if (!response.ok) {
-
-      status.textContent =
-        data.message ||
-        'Нэвтрэх боломжгүй байна.';
-
-      return;
-    }
-
-
-    const rows =
-      Array.isArray(data.responses)
-        ? data.responses
-        : [];
-
-
-    status.textContent =
-      'Нийт ирсэн мэдээлэл: ' +
-      rows.length;
-
-
-    if (rows.length === 0) {
-
-      container.innerHTML =
-        '<p style="text-align:center;">Одоогоор мэдээлэл ирээгүй байна.</p>';
-
-      return;
-    }
-
-
-    container.innerHTML =
-      rows
-        .slice()
-        .reverse()
-        .map(function(row) {
-
-          const when =
-            row.receivedAt ||
-            row.createdAt ||
-            row.date ||
-            '';
-
-          return \`
-
-<div class="item">
-
-<h3>
-\${safe(row.type || 'Мэдээлэл')}
-</h3>
-
-\${row.name
-  ? '<p><b>Нэр:</b> ' +
-    safe(row.name) +
-    '</p>'
-  : ''
-}
-
-\${row.message
-  ? '<p><b>Мэдээлэл:</b> ' +
-    safe(row.message) +
-    '</p>'
-  : ''
-}
-
-\${row.answer !== null &&
-   row.answer !== undefined &&
-   row.answer !== ''
-  ? '<p><b>Хариулт:</b> ' +
-    safe(row.answer) +
-    '</p>'
-  : ''
-}
-
-\${showAnswers(row.answers)}
-
-<div class="date">
-\${safe(when)}
-</div>
-
-</div>
-
-          \`;
-
-        })
-        .join('');
-
-
-  } catch (error) {
-
-    console.error(error);
-
-    status.textContent =
-      'Мэдээлэл унших үед алдаа гарлаа.';
-  }
-}
-
-</script>
-
-</body>
-</html>
-  `);
-});
-
-
-// ===============================
-// QR КОД
-// ===============================
 
 app.get('/qr', async (req, res) => {
-
-  try {
-
-    const url =
-      \`\${req.protocol}://\${req.get('host')}/\`;
-
-    const qr =
-      await QRCode.toBuffer(
-        url,
-        {
-          width: 700,
-          margin: 2
-        }
-      );
-
-    res.type('png').send(qr);
-
-  } catch (err) {
-
-    console.error(err);
-
-    res.status(500).send(
-      'QR кодын алдаа'
-    );
+  const protocol = req.get('x-forwarded-proto') || req.protocol;
+  const host = req.get('x-forwarded-host') || req.get('host');
+  const url = `${protocol}://${host}/`;
+  try{
+    const png = await QRCode.toBuffer(url, { width: 700, margin: 2 });
+    res.type('png').send(png);
+  }catch(e){
+    res.status(500).send('QR алдаа');
   }
 });
 
-
-// ===============================
-// ҮНДСЭН САЙТ
-// ===============================
-
-app.get('/', (req, res) => {
-  res.sendFile(INDEX_FILE);
+app.get('/admin', (req, res) => {
+  res.send(`<!doctype html>
+<html lang="mn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ёс зүйн дэд хороо - Админ</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f4f7fb;margin:0;padding:20px;color:#1f2937}
+.wrap{max-width:1000px;margin:auto}.box{background:#fff;padding:20px;border-radius:16px;box-shadow:0 8px 25px rgba(0,0,0,.08)}
+input,button{padding:11px;border-radius:9px;border:1px solid #ccd5df;font-size:15px}
+button{background:#0d47a1;color:#fff;font-weight:700;cursor:pointer}.row{display:flex;gap:8px;flex-wrap:wrap}
+.card{border:1px solid #dce5ef;border-radius:12px;padding:14px;margin-top:12px;background:#fbfdff}
+pre{white-space:pre-wrap;word-break:break-word;background:#f5f7fa;padding:10px;border-radius:8px}
+</style></head>
+<body><div class="wrap"><div class="box">
+<h2>Тариалан хүүхдийн цэцэрлэг – Нууц админ</h2>
+<p>Санал, гомдол, талархлын мэдээллийг зөвхөн админ нууц үгтэй хүн харна.</p>
+<div class="row"><input id="pw" type="password" placeholder="Админ нууц үг"><button onclick="loadData()">Нэвтрэх</button></div>
+<div id="status"></div><div id="list"></div>
+</div></div>
+<script>
+async function loadData(){
+ const pw=document.getElementById('pw').value;
+ const s=document.getElementById('status'), list=document.getElementById('list');
+ s.textContent='Уншиж байна...'; list.innerHTML='';
+ const r=await fetch('/api/admin/responses',{headers:{'x-admin-password':pw}});
+ if(!r.ok){s.textContent='Нууц үг буруу байна.';return;}
+ const rows=await r.json(); s.textContent='Нийт '+rows.length+' мэдээлэл.';
+ rows.slice().reverse().forEach(x=>{
+   const d=document.createElement('div'); d.className='card';
+   const h=document.createElement('h3'); h.textContent=x.type+' • '+(x.date||x.receivedAt); d.appendChild(h);
+   const p=document.createElement('pre'); p.textContent=JSON.stringify(x.answers,null,2); d.appendChild(p);
+   list.appendChild(d);
+ });
+}
+</script></body></html>`);
 });
 
-app.get('/index.html', (req, res) => {
-  res.sendFile(INDEX_FILE);
-});
-
-app.use(express.static(__dirname));
-
-
-// ===============================
-// SERVER
-// ===============================
-
-app.listen(
-  PORT,
-  '0.0.0.0',
-  () => {
-    console.log(
-      \`Running on \${PORT}\`
-    );
-  }
-);
+app.listen(PORT, () => console.log(`Running on ${PORT}`));
